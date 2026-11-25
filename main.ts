@@ -16,6 +16,7 @@ function exec(p: Buffer, inp: Buffer): [Buffer, number] {
   const s: number[] = []; // data stack, at most 256 values
   const c: number[] = []; // call stack, at most 64 return addresses
   const o: number[] = []; // output bytes, at most 65536
+  const plen = p.length; // program bytes never change during a run
   let pc = 0; // program counter
   let ip = 0; // next input byte
   let n = 0; // instructions executed
@@ -30,10 +31,10 @@ function exec(p: Buffer, inp: Buffer): [Buffer, number] {
   try {
     for (;;) {
       if (n >= 1000000) fail(10); // step limit
-      if (pc < 0 || pc >= p.length) fail(9); // pc outside program
+      if (pc < 0 || pc >= plen) fail(9); // pc outside program
       const op = p[pc];
       // Immediate must fit before the program ends, else trap 9.
-      const need = (k: number): void => { if (pc + 1 + k > p.length) fail(9); };
+      const need = (k: number): void => { if (pc + 1 + k > plen) fail(9); };
       const u16 = (): number => p[pc + 1] | (p[pc + 2] << 8);
       const s16 = (): number => { const v = u16(); return v >= 32768 ? v - 65536 : v; };
       n++;
